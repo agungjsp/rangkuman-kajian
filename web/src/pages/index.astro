@@ -1,0 +1,6 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Library from '../components/Library';
+import { libraryItems } from '../lib/content';
+---
+<Layout title="Perpustakaan"><Library items={libraryItems()} client:load /></Layout>

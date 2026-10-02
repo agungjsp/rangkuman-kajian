@@ -1,0 +1,8 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Reader from '../../components/Reader';
+import { getStudies } from '../../lib/content';
+const study = getStudies().find(study => study.slug === Astro.params.slug);
+if (!study) return new Response('Catatan tidak ditemukan.', { status: 404 });
+---
+<Layout title={study.title}><Reader study={study} client:load /></Layout>

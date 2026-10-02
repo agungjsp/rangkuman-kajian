@@ -1,0 +1,72 @@
+# Credentials and machine-local configuration
+.env
+.env.*
+!.env.example
+.npmrc
+.pypirc
+.netrc
+secrets/
+.secrets/
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Private study library, evidence, owner decisions, and archived versions
+/transcript/*
+!/transcript/.gitkeep
+/summarize/*
+!/summarize/.gitkeep
+
+# Local jobs, checkpoints, retrieved references, and smoke tests
+.local/
+.cache/
+
+# Private planning documents and source-review records
+/docs/*.docx
+/docs/m4-owner-review.md
+/docs/local-manager-validation.md
+/docs/private/
+
+# Python dependencies and generated files
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Node dependencies, Astro builds, and generated types
+node_modules/
+/web/dist/
+/web/.astro/
+*.tsbuildinfo
+
+# Browser test output and logs
+/web/test-results/
+/web/playwright-report/
+/web/blob-report/
+/web/playwright/.cache/
+coverage/
+*.log
+npm-debug.log*
+
+# Generated design-tool artifacts; keep reusable config and design tokens
+/.impeccable/hook.cache.json
+/.impeccable/review/
+/.impeccable/mocks/
+/.impeccable/build/
+
+# OS and editor temporary files
+.DS_Store
+Thumbs.db
+Desktop.ini
+.idea/
+*.swp
+*.swo
+*~

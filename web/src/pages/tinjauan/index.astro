@@ -1,0 +1,48 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getStudies } from '../../lib/content';
+import { claimStatus, needsReview, ownerReviewLabels } from '../../lib/review';
+import ReviewControls from '../../components/ReviewControls';
+
+const studies = getStudies();
+const groups = studies.filter(study => study.state === 'current').map(study => ({
+  study,
+  items: study.sections.flatMap(section => section.parts
+    .filter(part => part.claimId && needsReview(part.claim))
+    .map(part => ({ id: part.claimId!, section: section.title, text: part.text.split('Sumber:')[0].trim(), status: claimStatus(part.claim), acceptance: study.ownerReview.acceptedClaims[part.claimId!] }))),
+})).filter(group => group.items.length);
+const unchecked = studies.filter(study => study.state !== 'current');
+const total = groups.reduce((count, group) => count + group.items.length, 0);
+const pending = groups.reduce((count, group) => count + group.items.filter(item => !item.acceptance).length, 0);
+---
+<Layout title="Tinjauan JEV">
+  <main id="main" class="review-main">
+    <a class="text-link" href="/">← Perpustakaan</a>
+    <header class="review-intro">
+      <h1>Poin yang perlu ditinjau</h1>
+      <p>JEV menandai poin yang belum didukung kuat oleh kutipan sumber. Buka poin untuk membaca catatan dan bukti yang diperiksa. Tinjauan manusia tetap diperlukan.</p>
+      <strong>{total} poin ditandai JEV dari {groups.length} kajian · {pending} belum diterima pemilik</strong>
+    </header>
+
+    {unchecked.length > 0 && <section class="review-unchecked" aria-labelledby="unchecked-title">
+      <h2 id="unchecked-title">Catatan yang belum siap diperiksa</h2>
+      <p>Temuan lama tidak ditampilkan sebagai hasil terkini. Periksa atau buat ulang catatan ini terlebih dahulu.</p>
+      <ul>{unchecked.map(study => <li><a href={`/kajian/${study.slug}/`}>{study.title}</a><span>{study.state === 'stale' ? 'Perlu diperiksa ulang' : study.state === 'missing' ? 'Belum ada data pemeriksaan' : 'Catatan format lama'}</span></li>)}</ul>
+    </section>}
+
+    {groups.map(({ study, items }) => <section class="review-group" id={`review-${study.slug}`} aria-labelledby={`title-${study.slug}`}>
+      <div class="review-group-heading"><h2 id={`title-${study.slug}`}>{study.title}</h2><span>{items.length} temuan · {items.filter(item => !item.acceptance).length} belum diterima pemilik</span></div>
+      <p class="small muted">{ownerReviewLabels[study.ownerReview.status]}</p>
+      <ol class="review-list">{items.map(item => <li class="review-item">
+        <div class="review-item-meta"><strong>{item.status}</strong><span>{item.section}</span></div>
+        <p>{item.text.slice(0, 260)}{item.text.length > 260 ? '…' : ''}</p>
+        {item.acceptance && <div class="owner-acceptance"><strong>Diterima pemilik setelah tinjauan sumber</strong><p>{item.acceptance.reason}</p><span class="small muted">{new Date(item.acceptance.accepted_at).toLocaleDateString('id-ID', { timeZone: 'Asia/Jakarta' })} · Temuan JEV tetap ditampilkan.</span></div>}
+        <a class="text-link" href={`/kajian/${study.slug}/?bukti=${encodeURIComponent(item.id)}#poin-${encodeURIComponent(item.id)}`}>Buka poin dan bukti →</a>
+        {study.ownerReview.status !== 'stale' && <details class="queue-review"><summary>Catat keputusan pemilik</summary><ReviewControls slug={study.slug} revision={study.revision} claimId={item.id} accepted={!!item.acceptance} client:load /></details>}
+      </li>)}</ol>
+      {study.ownerReview.status !== 'stale' && items.every(item => item.acceptance) && <ReviewControls slug={study.slug} revision={study.revision} reviewed={study.ownerReview.status === 'reviewed'} client:load />}
+    </section>)}
+
+    {!total && !unchecked.length && <div class="empty-state"><h2>Tidak ada temuan yang menunggu tinjauan</h2><p>Semua poin yang diperiksa otomatis mendapat dukungan sumber. Tetap baca dan tinjau catatannya sendiri.</p><a class="text-link" href="/">Kembali ke perpustakaan →</a></div>}
+  </main>
+</Layout>
